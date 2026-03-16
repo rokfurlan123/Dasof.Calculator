@@ -1,0 +1,354 @@
+@page "/"
+@using Dasof.Calculator.Business.Frontend
+@using System.Net.Http.Json
+@using System.Globalization
+@inject IHttpClientFactory HttpClientFactory
+
+<PageTitle>Calculator</PageTitle>
+
+<div class="calculator-page">
+    <section class="calculator-box">
+        <div class="calculator-header">
+            <p class="eyebrow">Calculator</p>
+            <h1>Vehicle price input</h1>
+            <p class="subtitle">Pick which value you want to enter, then calculate the totals.</p>
+        </div>
+
+        <EditForm Model="@request" OnValidSubmit="SubmitAsync">
+            <div class="vat-row">
+                <div class="input-group">
+                    <label for="vat">VAT (%)</label>
+                    <input id="vat"
+                           type="text"
+                           inputmode="decimal"
+                           class="input-field"
+                           value="@vatText"
+                           @oninput="OnVatInput"
+                           @onblur="OnVatBlur"
+                           placeholder="22,00" />
+                </div>
+            </div>
+
+            <div class="pair-section">
+                <div class="pair-heading">
+                    <h2>Base vehicle price</h2>
+                    <p>Select the input you want to write to.</p>
+                </div>
+
+                <div class="pair-grid">
+                    <div class="input-group">
+                        <div class="input-header">
+                            <label for="base-vehicle-price-neto">Net</label>
+                            <button type="button"
+                                    class="select-button @(IsBaseNetoSelected ? "is-selected" : null)"
+                                    aria-pressed="@IsBaseNetoSelected"
+                                    @onclick="() => SelectBasePriceInput(true)">
+                                @(IsBaseNetoSelected ? "Selected" : "Select")
+                            </button>
+                        </div>
+
+                        <input id="base-vehicle-price-neto"
+                               type="text"
+                               inputmode="decimal"
+                               class="input-field"
+                               value="@baseVehiclePriceNetoText"
+                               @oninput="OnBaseVehiclePriceNetoInput"
+                               @onblur="OnBaseVehiclePriceNetoBlur"
+                               disabled="@(!IsBaseNetoSelected)"
+                               placeholder="0,00" />
+                    </div>
+
+                    <div class="input-group">
+                        <div class="input-header">
+                            <label for="base-vehicle-price-bruto">Gross</label>
+                            <button type="button"
+                                    class="select-button @(!IsBaseNetoSelected ? "is-selected" : null)"
+                                    aria-pressed="@(!IsBaseNetoSelected)"
+                                    @onclick="() => SelectBasePriceInput(false)">
+                                @(!IsBaseNetoSelected ? "Selected" : "Select")
+                            </button>
+                        </div>
+
+                        <input id="base-vehicle-price-bruto"
+                               type="text"
+                               inputmode="decimal"
+                               class="input-field"
+                               value="@baseVehiclePriceBrutoText"
+                               @oninput="OnBaseVehiclePriceBrutoInput"
+                               @onblur="OnBaseVehiclePriceBrutoBlur"
+                               disabled="@IsBaseNetoSelected"
+                               placeholder="0,00" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="pair-section">
+                <div class="pair-heading">
+                    <h2>Additional equipment</h2>
+                    <p>Select the input you want to write to.</p>
+                </div>
+
+                <div class="pair-grid">
+                    <div class="input-group">
+                        <div class="input-header">
+                            <label for="additional-equipment-price-neto">Net</label>
+                            <button type="button"
+                                    class="select-button @(IsAdditionalEquipmentNetoSelected ? "is-selected" : null)"
+                                    aria-pressed="@IsAdditionalEquipmentNetoSelected"
+                                    @onclick="() => SelectAdditionalEquipmentInput(true)">
+                                @(IsAdditionalEquipmentNetoSelected ? "Selected" : "Select")
+                            </button>
+                        </div>
+
+                        <input id="additional-equipment-price-neto"
+                               type="text"
+                               inputmode="decimal"
+                               class="input-field"
+                               value="@additionalEquipmentPriceNetoText"
+                               @oninput="OnAdditionalEquipmentPriceNetoInput"
+                               @onblur="OnAdditionalEquipmentPriceNetoBlur"
+                               disabled="@(!IsAdditionalEquipmentNetoSelected)"
+                               placeholder="0,00" />
+                    </div>
+
+                    <div class="input-group">
+                        <div class="input-header">
+                            <label for="additional-equipment-price-bruto">Gross</label>
+                            <button type="button"
+                                    class="select-button @(!IsAdditionalEquipmentNetoSelected ? "is-selected" : null)"
+                                    aria-pressed="@(!IsAdditionalEquipmentNetoSelected)"
+                                    @onclick="() => SelectAdditionalEquipmentInput(false)">
+                                @(!IsAdditionalEquipmentNetoSelected ? "Selected" : "Select")
+                            </button>
+                        </div>
+
+                        <input id="additional-equipment-price-bruto"
+                               type="text"
+                               inputmode="decimal"
+                               class="input-field"
+                               value="@additionalEquipmentPriceBrutoText"
+                               @oninput="OnAdditionalEquipmentPriceBrutoInput"
+                               @onblur="OnAdditionalEquipmentPriceBrutoBlur"
+                               disabled="@IsAdditionalEquipmentNetoSelected"
+                               placeholder="0,00" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="submit-button" disabled="@isSubmitting">
+                    @(isSubmitting ? "Calculating..." : "Calculate")
+                </button>
+            </div>
+        </EditForm>
+
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <p class="message error-message">@errorMessage</p>
+        }
+
+        <div class="result-panel">
+            <div class="result-header">
+                <h2>Calculated totals</h2>
+                <p>These fields are filled after submit.</p>
+            </div>
+
+            <div class="result-grid">
+                <div class="input-group">
+                    <label for="total-vehicle-price-neto">Net</label>
+                    <input id="total-vehicle-price-neto"
+                           class="input-field result-field"
+                           value="@FormatDecimal(result?.TotalVehiclePriceNeto)"
+                           readonly />
+                </div>
+
+                <div class="input-group">
+                    <label for="total-vehicle-price-bruto">Gross</label>
+                    <input id="total-vehicle-price-bruto"
+                           class="input-field result-field"
+                           value="@FormatDecimal(result?.TotalVehiclePriceBruto)"
+                           readonly />
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+@code {
+    private static readonly CultureInfo NumberCulture = CultureInfo.GetCultureInfo("sl-SI");
+
+    private readonly RequestModel request = new()
+    {
+        Vat = 22m,
+        IsBaseVehiclePriceNetoSelected = true,
+        IsAdditionalEquipmentNetoSelected = true
+    };
+
+    private ResponseModel? result;
+    private string? errorMessage;
+    private bool isSubmitting;
+    private string vatText = string.Empty;
+    private string baseVehiclePriceNetoText = string.Empty;
+    private string baseVehiclePriceBrutoText = string.Empty;
+    private string additionalEquipmentPriceNetoText = string.Empty;
+    private string additionalEquipmentPriceBrutoText = string.Empty;
+
+    private bool IsBaseNetoSelected => request.IsBaseVehiclePriceNetoSelected ?? true;
+    private bool IsAdditionalEquipmentNetoSelected => request.IsAdditionalEquipmentNetoSelected ?? true;
+
+    protected override void OnInitialized() =>
+        SyncInputTexts();
+
+    private void SelectBasePriceInput(bool isNeto) =>
+        request.IsBaseVehiclePriceNetoSelected = isNeto;
+
+    private void SelectAdditionalEquipmentInput(bool isNeto) =>
+        request.IsAdditionalEquipmentNetoSelected = isNeto;
+
+    private void OnVatInput(ChangeEventArgs args) =>
+        UpdateDecimalInput(args, value => request.Vat = value, value => vatText = value);
+
+    private void OnVatBlur(FocusEventArgs _) =>
+        vatText = FormatEditableText(vatText, request.Vat);
+
+    private void OnBaseVehiclePriceNetoInput(ChangeEventArgs args) =>
+        UpdateDecimalInput(args, value => request.BaseVehiclePriceNeto = value, value => baseVehiclePriceNetoText = value);
+
+    private void OnBaseVehiclePriceNetoBlur(FocusEventArgs _) =>
+        baseVehiclePriceNetoText = FormatEditableText(baseVehiclePriceNetoText, request.BaseVehiclePriceNeto);
+
+    private void OnBaseVehiclePriceBrutoInput(ChangeEventArgs args) =>
+        UpdateDecimalInput(args, value => request.BaseVehiclePriceBruto = value, value => baseVehiclePriceBrutoText = value);
+
+    private void OnBaseVehiclePriceBrutoBlur(FocusEventArgs _) =>
+        baseVehiclePriceBrutoText = FormatEditableText(baseVehiclePriceBrutoText, request.BaseVehiclePriceBruto);
+
+    private void OnAdditionalEquipmentPriceNetoInput(ChangeEventArgs args) =>
+        UpdateDecimalInput(args, value => request.AdditionalEquipmentPriceNeto = value, value => additionalEquipmentPriceNetoText = value);
+
+    private void OnAdditionalEquipmentPriceNetoBlur(FocusEventArgs _) =>
+        additionalEquipmentPriceNetoText = FormatEditableText(additionalEquipmentPriceNetoText, request.AdditionalEquipmentPriceNeto);
+
+    private void OnAdditionalEquipmentPriceBrutoInput(ChangeEventArgs args) =>
+        UpdateDecimalInput(args, value => request.AdditionalEquipmentPriceBruto = value, value => additionalEquipmentPriceBrutoText = value);
+
+    private void OnAdditionalEquipmentPriceBrutoBlur(FocusEventArgs _) =>
+        additionalEquipmentPriceBrutoText = FormatEditableText(additionalEquipmentPriceBrutoText, request.AdditionalEquipmentPriceBruto);
+
+    private async Task SubmitAsync()
+    {
+        errorMessage = null;
+        result = null;
+
+        if (!request.Vat.HasValue)
+        {
+            errorMessage = "Enter VAT percentage.";
+            return;
+        }
+
+        if (IsBaseNetoSelected && !request.BaseVehiclePriceNeto.HasValue)
+        {
+            errorMessage = "Enter base vehicle net.";
+            return;
+        }
+
+        if (!IsBaseNetoSelected && !request.BaseVehiclePriceBruto.HasValue)
+        {
+            errorMessage = "Enter base vehicle gross.";
+            return;
+        }
+
+        if (IsAdditionalEquipmentNetoSelected && !request.AdditionalEquipmentPriceNeto.HasValue)
+        {
+            errorMessage = "Enter additional equipment net.";
+            return;
+        }
+
+        if (!IsAdditionalEquipmentNetoSelected && !request.AdditionalEquipmentPriceBruto.HasValue)
+        {
+            errorMessage = "Enter additional equipment gross.";
+            return;
+        }
+
+        isSubmitting = true;
+
+        try
+        {
+            var payload = new RequestModel
+            {
+                Vat = request.Vat,
+                BaseVehiclePriceNeto = IsBaseNetoSelected ? request.BaseVehiclePriceNeto : null,
+                BaseVehiclePriceBruto = IsBaseNetoSelected ? null : request.BaseVehiclePriceBruto,
+                IsBaseVehiclePriceNetoSelected = IsBaseNetoSelected,
+                AdditionalEquipmentPriceNeto = IsAdditionalEquipmentNetoSelected ? request.AdditionalEquipmentPriceNeto : null,
+                AdditionalEquipmentPriceBruto = IsAdditionalEquipmentNetoSelected ? null : request.AdditionalEquipmentPriceBruto,
+                IsAdditionalEquipmentNetoSelected = IsAdditionalEquipmentNetoSelected
+            };
+
+            var client = HttpClientFactory.CreateClient("CalculatorApi");
+            var response = await client.PostAsJsonAsync("Calculator/calculate", payload);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                errorMessage = $"Calculation failed: {(int)response.StatusCode} {response.ReasonPhrase}";
+                return;
+            }
+
+            result = await response.Content.ReadFromJsonAsync<ResponseModel>();
+
+            if (result is not null)
+            {
+                request.BaseVehiclePriceNeto = result.BaseVehiclePriceNeto;
+                request.BaseVehiclePriceBruto = result.BaseVehiclePriceBruto;
+                request.AdditionalEquipmentPriceNeto = result.AdditionalEquipmentPriceNeto;
+                request.AdditionalEquipmentPriceBruto = result.AdditionalEquipmentPriceBruto;
+                SyncInputTexts();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Could not calculate totals: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void SyncInputTexts()
+    {
+        vatText = FormatDecimal(request.Vat);
+        baseVehiclePriceNetoText = FormatDecimal(request.BaseVehiclePriceNeto);
+        baseVehiclePriceBrutoText = FormatDecimal(request.BaseVehiclePriceBruto);
+        additionalEquipmentPriceNetoText = FormatDecimal(request.AdditionalEquipmentPriceNeto);
+        additionalEquipmentPriceBrutoText = FormatDecimal(request.AdditionalEquipmentPriceBruto);
+    }
+
+    private static void UpdateDecimalInput(ChangeEventArgs args, Action<decimal?> setValue, Action<string> setText)
+    {
+        var rawText = args.Value?.ToString() ?? string.Empty;
+        setText(rawText);
+
+        if (string.IsNullOrWhiteSpace(rawText))
+        {
+            setValue(null);
+            return;
+        }
+
+        if (decimal.TryParse(rawText, NumberStyles.Number, NumberCulture, out var parsedValue))
+        {
+            setValue(parsedValue);
+            return;
+        }
+
+        setValue(null);
+    }
+
+    private static string FormatEditableText(string rawText, decimal? value) =>
+        string.IsNullOrWhiteSpace(rawText) || value.HasValue
+            ? FormatDecimal(value)
+            : rawText;
+
+    private static string FormatDecimal(decimal? value) =>
+        value.HasValue ? value.Value.ToString("N2", NumberCulture) : string.Empty;
+}

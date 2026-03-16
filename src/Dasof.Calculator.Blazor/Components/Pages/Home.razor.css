@@ -1,0 +1,235 @@
+.calculator-page {
+    min-height: calc(100vh - 5rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    background:
+        radial-gradient(circle at top, rgba(23, 37, 84, 0.12), transparent 35%),
+        linear-gradient(180deg, #f8fafc 0%, #e8eef6 100%);
+}
+
+.calculator-box {
+    width: min(100%, 980px);
+    padding: 2.75rem;
+    border: 1px solid #d6deea;
+    border-radius: 28px;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 30px 80px rgba(15, 23, 42, 0.12);
+}
+
+.calculator-header {
+    margin-bottom: 2rem;
+}
+
+.eyebrow {
+    margin: 0 0 0.6rem;
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #2563eb;
+}
+
+.calculator-header h1 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    line-height: 1.05;
+    color: #0f172a;
+}
+
+.subtitle {
+    margin: 0.8rem 0 0;
+    color: #475569;
+    font-size: 1.05rem;
+}
+
+.vat-row,
+.pair-grid,
+.result-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+.vat-row {
+    margin-bottom: 1.75rem;
+}
+
+.pair-section + .pair-section {
+    margin-top: 1.75rem;
+}
+
+.pair-heading {
+    margin-bottom: 0.9rem;
+}
+
+.pair-heading h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #0f172a;
+}
+
+.pair-heading p {
+    margin: 0.35rem 0 0;
+    color: #64748b;
+    font-size: 0.95rem;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.input-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.input-group label {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.select-button {
+    min-width: 96px;
+    min-height: 36px;
+    padding: 0.35rem 0.8rem;
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.select-button.is-selected {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    color: #ffffff;
+}
+
+.calculator-box ::deep .input-field {
+    width: 100%;
+    min-height: 72px;
+    padding: 1.05rem 1.15rem;
+    border: 2px solid #9fb2cc;
+    border-radius: 22px;
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 1.2rem;
+    font-weight: 600;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.calculator-box ::deep .input-field:disabled {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #64748b;
+    cursor: not-allowed;
+}
+
+.calculator-box ::deep .input-field:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.16);
+    transform: translateY(-1px);
+}
+
+.actions {
+    margin-top: 1.75rem;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.submit-button {
+    min-width: 220px;
+    min-height: 62px;
+    border: 0;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #2563eb 0%, #0f172a 100%);
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    box-shadow: 0 16px 32px rgba(37, 99, 235, 0.24);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.submit-button:hover:enabled {
+    transform: translateY(-1px);
+    box-shadow: 0 20px 38px rgba(37, 99, 235, 0.28);
+}
+
+.submit-button:disabled {
+    opacity: 0.7;
+    cursor: wait;
+}
+
+.message {
+    margin: 1rem 0 0;
+    padding: 0.95rem 1rem;
+    border-radius: 16px;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.error-message {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+}
+
+.result-panel {
+    margin-top: 2rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid #dbe4f0;
+}
+
+.result-header {
+    margin-bottom: 1.15rem;
+}
+
+.result-header h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    color: #0f172a;
+}
+
+.result-header p {
+    margin: 0.45rem 0 0;
+    color: #64748b;
+}
+
+.calculator-box ::deep .result-field {
+    background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%);
+    border-color: #93c5fd;
+}
+
+@media (max-width: 700px) {
+    .calculator-box {
+        padding: 1.5rem;
+    }
+
+    .vat-row,
+    .pair-grid,
+    .result-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .input-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .submit-button {
+        width: 100%;
+    }
+}

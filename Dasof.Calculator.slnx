@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="src/Dasof.Calculator.Api/Dasof.Calculator.Api.csproj" Id="bbdfaee1-2455-4988-8570-7557f1d7df76" />
+  <Project Path="src/Dasof.Calculator.Blazor/Dasof.Calculator.Blazor.csproj" />
+  <Project Path="src/Dasof.Calculator.Business/Dasof.Calculator.Business.csproj" Id="ba0008c5-d5f3-4d0c-aeeb-14a158be9cc4" />
+</Solution>
