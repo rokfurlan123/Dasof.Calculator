@@ -1,4 +1,4 @@
-﻿using Dasof.Calculator.Business.Frontend;
+using Dasof.Calculator.Business.Common;
 
 namespace Dasof.Calculator.Business.Repositories
 {
@@ -41,10 +41,8 @@ namespace Dasof.Calculator.Business.Repositories
             {
                 BaseVehiclePriceNeto = Math.Round(baseNeto, 2),
                 BaseVehiclePriceBruto = Math.Round(baseBruto, 2),
-
                 AdditionalEquipmentPriceNeto = Math.Round(equipmentNeto, 2),
                 AdditionalEquipmentPriceBruto = Math.Round(equipmentBruto, 2),
-
                 TotalVehiclePriceNeto = Math.Round(baseNeto + equipmentNeto, 2),
                 TotalVehiclePriceBruto = Math.Round(baseBruto + equipmentBruto, 2)
             };

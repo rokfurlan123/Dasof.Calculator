@@ -1,11 +1,31 @@
-
-
-
-
 @Dasof.Calculator.Api_HostAddress = http://localhost:5034
 
-GET {{Dasof.Calculator.Api_HostAddress}}/weatherforecast/
+POST {{Dasof.Calculator.Api_HostAddress}}/Calculator/calculate
+Content-Type: application/json
 Accept: application/json
+
+{
+  "vat": 22,
+  "baseVehiclePriceNeto": 10000,
+  "baseVehiclePriceBruto": null,
+  "isBaseVehiclePriceNetoSelected": true,
+  "additionalEquipmentPriceNeto": 2500,
+  "additionalEquipmentPriceBruto": null,
+  "isAdditionalEquipmentNetoSelected": true
+}
 
 ###
 
+POST {{Dasof.Calculator.Api_HostAddress}}/Calculator/calculate
+Content-Type: application/json
+Accept: application/json
+
+{
+  "vat": 22,
+  "baseVehiclePriceNeto": null,
+  "baseVehiclePriceBruto": 12200,
+  "isBaseVehiclePriceNetoSelected": false,
+  "additionalEquipmentPriceNeto": null,
+  "additionalEquipmentPriceBruto": 3050,
+  "isAdditionalEquipmentNetoSelected": false
+}

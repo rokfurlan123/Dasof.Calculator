@@ -1,4 +1,4 @@
-using Dasof.Calculator.Business.Frontend;
+using Dasof.Calculator.Business.Common;
 using Dasof.Calculator.Business.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,7 +12,7 @@ namespace Dasof.Calculator.Api.Controllers
 
         public CalculatorController(ICalculatorRepository calculatorRepository)
         {
-            _calculatorRepository = calculatorRepository;        
+            _calculatorRepository = calculatorRepository;
         }
 
         [HttpPost("calculate")]
