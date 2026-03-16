@@ -22,6 +22,7 @@
                            type="text"
                            inputmode="decimal"
                            class="input-field"
+                           data-decimal-only="true"
                            value="@vatText"
                            @oninput="OnVatInput"
                            @onblur="OnVatBlur"
@@ -51,6 +52,7 @@
                                type="text"
                                inputmode="decimal"
                                class="input-field"
+                               data-decimal-only="true"
                                value="@baseVehiclePriceNetoText"
                                @oninput="OnBaseVehiclePriceNetoInput"
                                @onblur="OnBaseVehiclePriceNetoBlur"
@@ -73,6 +75,7 @@
                                type="text"
                                inputmode="decimal"
                                class="input-field"
+                               data-decimal-only="true"
                                value="@baseVehiclePriceBrutoText"
                                @oninput="OnBaseVehiclePriceBrutoInput"
                                @onblur="OnBaseVehiclePriceBrutoBlur"
@@ -104,6 +107,7 @@
                                type="text"
                                inputmode="decimal"
                                class="input-field"
+                               data-decimal-only="true"
                                value="@additionalEquipmentPriceNetoText"
                                @oninput="OnAdditionalEquipmentPriceNetoInput"
                                @onblur="OnAdditionalEquipmentPriceNetoBlur"
@@ -126,6 +130,7 @@
                                type="text"
                                inputmode="decimal"
                                class="input-field"
+                               data-decimal-only="true"
                                value="@additionalEquipmentPriceBrutoText"
                                @oninput="OnAdditionalEquipmentPriceBrutoInput"
                                @onblur="OnAdditionalEquipmentPriceBrutoBlur"
@@ -199,11 +204,47 @@
     protected override void OnInitialized() =>
         SyncInputTexts();
 
-    private void SelectBasePriceInput(bool isNeto) =>
-        request.IsBaseVehiclePriceNetoSelected = isNeto;
+    private void SelectBasePriceInput(bool isNeto)
+    {
+        if (IsBaseNetoSelected == isNeto)
+        {
+            return;
+        }
 
-    private void SelectAdditionalEquipmentInput(bool isNeto) =>
+        if (isNeto)
+        {
+            request.BaseVehiclePriceBruto = null;
+            baseVehiclePriceBrutoText = string.Empty;
+        }
+        else
+        {
+            request.BaseVehiclePriceNeto = null;
+            baseVehiclePriceNetoText = string.Empty;
+        }
+
+        request.IsBaseVehiclePriceNetoSelected = isNeto;
+    }
+
+    private void SelectAdditionalEquipmentInput(bool isNeto)
+    {
+        if (IsAdditionalEquipmentNetoSelected == isNeto)
+        {
+            return;
+        }
+
+        if (isNeto)
+        {
+            request.AdditionalEquipmentPriceBruto = null;
+            additionalEquipmentPriceBrutoText = string.Empty;
+        }
+        else
+        {
+            request.AdditionalEquipmentPriceNeto = null;
+            additionalEquipmentPriceNetoText = string.Empty;
+        }
+
         request.IsAdditionalEquipmentNetoSelected = isNeto;
+    }
 
     private void OnVatInput(ChangeEventArgs args) =>
         UpdateDecimalInput(args, value => request.Vat = value, value => vatText = value);
@@ -327,21 +368,100 @@
     private static void UpdateDecimalInput(ChangeEventArgs args, Action<decimal?> setValue, Action<string> setText)
     {
         var rawText = args.Value?.ToString() ?? string.Empty;
-        setText(rawText);
+        var sanitizedText = SanitizeDecimalText(rawText);
+        setText(sanitizedText);
 
-        if (string.IsNullOrWhiteSpace(rawText))
+        if (string.IsNullOrWhiteSpace(sanitizedText))
         {
             setValue(null);
             return;
         }
 
-        if (decimal.TryParse(rawText, NumberStyles.Number, NumberCulture, out var parsedValue))
+        if (decimal.TryParse(sanitizedText, NumberStyles.Number, NumberCulture, out var parsedValue))
         {
             setValue(parsedValue);
             return;
         }
 
         setValue(null);
+    }
+
+    private static string SanitizeDecimalText(string rawText)
+    {
+        if (string.IsNullOrWhiteSpace(rawText))
+        {
+            return string.Empty;
+        }
+
+        var separatorIndex = GetDecimalSeparatorIndex(rawText);
+        var builder = new System.Text.StringBuilder(rawText.Length);
+        var decimalSeparator = NumberCulture.NumberFormat.NumberDecimalSeparator;
+        var fractionDigits = 0;
+
+        for (var index = 0; index < rawText.Length; index++)
+        {
+            var character = rawText[index];
+
+            if (char.IsDigit(character))
+            {
+                if (separatorIndex < 0 || index < separatorIndex || fractionDigits < 2)
+                {
+                    builder.Append(character);
+
+                    if (separatorIndex >= 0 && index > separatorIndex)
+                    {
+                        fractionDigits++;
+                    }
+                }
+
+                continue;
+            }
+
+            if (index == separatorIndex)
+            {
+                if (builder.Length == 0)
+                {
+                    builder.Append('0');
+                }
+
+                builder.Append(decimalSeparator);
+            }
+        }
+
+        return builder.ToString();
+    }
+
+    private static int GetDecimalSeparatorIndex(string rawText)
+    {
+        var lastComma = rawText.LastIndexOf(',');
+        var lastDot = rawText.LastIndexOf('.');
+
+        if (lastComma >= 0 && lastDot >= 0)
+        {
+            return Math.Max(lastComma, lastDot);
+        }
+
+        if (lastComma >= 0)
+        {
+            return lastComma;
+        }
+
+        if (lastDot < 0)
+        {
+            return -1;
+        }
+
+        var digitsAfterDot = 0;
+
+        for (var index = lastDot + 1; index < rawText.Length; index++)
+        {
+            if (char.IsDigit(rawText[index]))
+            {
+                digitsAfterDot++;
+            }
+        }
+
+        return digitsAfterDot <= 2 ? lastDot : -1;
     }
 
     private static string FormatEditableText(string rawText, decimal? value) =>
